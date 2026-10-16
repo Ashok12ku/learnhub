@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard{% endblock %}
+{% block content %}
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <span class="badge mb-2">Teacher Panel</span>
+            <h2 class="mb-1">Welcome, {{ user.first_name|default:user.username }} 👨‍🏫</h2>
+            <p class="mb-0">Manage your courses, students, and teaching growth from one place.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            {% if user.is_approved %}
+            <a href="{% url 'courses:create_course' %}" class="btn btn-light">Create course</a>
+            {% endif %}
+            <div class="dashboard-pill">🎯 Teaching dashboard</div>
+        </div>
+    </div>
+</div>
+
+{% if not user.is_approved %}
+<div class="alert alert-warning custom-alert">Your account is pending Admin approval. Course creation will unlock once approved.</div>
+{% endif %}
+
+<div class="row g-3 mt-2">
+    <div class="col-md-4">
+        <div class="stat-card card p-4 text-center h-100">
+            <div class="stat-icon">📚</div>
+            <h2 class="mb-1">{{ total_courses }}</h2>
+            <p class="text-muted mb-0">My Courses</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card card p-4 text-center h-100">
+            <div class="stat-icon">👥</div>
+            <h2 class="mb-1">{{ total_students }}</h2>
+            <p class="text-muted mb-0">Total Students</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card card p-4 text-center h-100">
+            <div class="stat-icon">💰</div>
+            <h2 class="mb-1">₹{{ total_earning }}</h2>
+            <p class="text-muted mb-0">Total Earnings</p>
+        </div>
+    </div>
+</div>
+
+<h5 class="mt-4 mb-3">My Courses</h5>
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table mb-0 align-middle">
+            <thead><tr><th>Title</th><th>Type</th><th>Price</th><th>Status</th><th>Manage</th></tr></thead>
+            <tbody>
+            {% for course in courses %}
+                <tr>
+                    <td>{{ course.title }}</td>
+                    <td>{{ course.get_course_type_display }}</td>
+                    <td>{% if course.course_type == "FREE" %}Free{% else %}₹{{ course.price|floatformat:2 }}{% endif %}</td>
+                    <td><span class="badge {% if course.status == 'APPROVED' %}bg-success{% elif course.status == 'PENDING' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ course.get_status_display }}</span></td>
+                    <td><a href="{% url 'courses:course_builder' course.slug %}" class="btn btn-sm btn-outline-primary">Manage content</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" class="text-muted">No courses created yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

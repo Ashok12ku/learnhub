@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: learnhub
+    env: python
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+    startCommand: "python manage.py migrate --noinput && gunicorn learnhub.wsgi --log-file -"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: learnhub-db
+          property: connectionString
+
+databases:
+  - name: learnhub-db
+    plan: free

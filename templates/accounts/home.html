@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}LearnHub - Learn and Teach{% endblock %}
+{% block meta_description %}Explore {{ course_count }} approved LearnHub courses, learn from expert teachers, and build practical skills.{% endblock %}
+{% block content %}
+<div class="home-page">
+    <section class="hero-section">
+        <div class="container-fluid px-0">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-7">
+                    <div class="badge-chip"><span class="hero-status-dot"></span> Learn. Grow. Lead.</div>
+                    <h1 class="display-4 fw-bold mb-3">Make your next move a <span>learning moment.</span></h1>
+                    <p class="hero-copy">Build practical skills with expert-led courses, live classes, and progress tracking designed to help you grow.</p>
+                    <div class="hero-actions d-flex flex-wrap gap-3">
+                        {% if user.is_authenticated %}
+                            {% if user.role == "ADMIN" or user.is_superuser %}
+                            <a href="{% url 'dashboard:admin_dashboard' %}" class="btn btn-light btn-lg">Open Dashboard <span aria-hidden="true">→</span></a>
+                            {% elif user.role == "TEACHER" %}
+                            <a href="{% url 'dashboard:teacher_dashboard' %}" class="btn btn-light btn-lg">Open Dashboard <span aria-hidden="true">→</span></a>
+                            {% else %}
+                            <a href="{% url 'dashboard:student_dashboard' %}" class="btn btn-light btn-lg">Continue Learning <span aria-hidden="true">→</span></a>
+                            {% endif %}
+                        {% else %}
+                        <a href="{% url 'accounts:signup_choice' %}" class="btn btn-light btn-lg">Get Started <span aria-hidden="true">→</span></a>
+                        <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg">Login</a>
+                        {% endif %}
+                        <a href="{% url 'courses:course_list' %}" class="btn btn-outline-light btn-lg">Browse Courses</a>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="hero-panel">
+                        <div class="hero-panel-heading">
+                            <span class="mini-label">Your learning community</span>
+                            <span class="hero-panel-mark" aria-hidden="true">✦</span>
+                        </div>
+                        <p class="hero-panel-title">Room to grow, skills to go.</p>
+                        <p class="hero-panel-copy">Learn at your pace with a community built around progress.</p>
+                        <div class="hero-stat-grid">
+                            <div>
+                                <strong>{{ course_count }}</strong>
+                                <small>Available courses</small>
+                            </div>
+                            <div>
+                                <strong>{{ teacher_count }}</strong>
+                                <small>Approved teachers</small>
+                            </div>
+                            <div>
+                                <strong>{{ student_count }}</strong>
+                                <small>Registered learners</small>
+                            </div>
+                            <div>
+                                <strong>{% if user.is_authenticated %}Ready{% else %}Open{% endif %}</strong>
+                                <small>{% if user.is_authenticated %}Your learning space{% else %}Join the community{% endif %}</small>
+                            </div>
+                        </div>
+                        <a href="{% url 'courses:course_list' %}" class="hero-panel-link">Find your next course <span aria-hidden="true">↗</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="trust-section home-features">
+        <div class="section-head">
+            <span class="eyebrow">Built for your next step</span>
+            <h2>Learning that moves you forward.</h2>
+            <p>Everything you need to turn a new interest into a real-world skill.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card stat-card h-100 p-4">
+                    <div class="feature-icon" aria-hidden="true">01</div>
+                    <h3 class="mt-4">Learn with direction</h3>
+                    <p class="text-muted mb-0">Follow organized lessons created by approved teachers, one step at a time.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card h-100 p-4">
+                    <div class="feature-icon" aria-hidden="true">02</div>
+                    <h3 class="mt-4">Connect in real time</h3>
+                    <p class="text-muted mb-0">Join scheduled live classes and learn alongside your course community.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card h-100 p-4">
+                    <div class="feature-icon" aria-hidden="true">03</div>
+                    <h3 class="mt-4">See your progress</h3>
+                    <p class="text-muted mb-0">Keep track of your learning and earn certificates when you are eligible.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="home-courses">
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 section-head text-start">
+            <div>
+                <span class="eyebrow">Course library</span>
+                <h2>Explore available courses</h2>
+                <p>Find a course that fits what you want to do next.</p>
+            </div>
+            <a href="{% url 'courses:course_list' %}" class="btn btn-outline-primary">Browse all courses <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="row g-4">
+            {% for course in featured_courses %}
+            <div class="col-lg-4 col-md-6">
+                <article class="course-card card h-100 overflow-hidden">
+                    {% if course.thumbnail %}
+                    <img src="{{ course.thumbnail.url }}" class="course-thumb" alt="{{ course.title }}">
+                    {% else %}
+                    <div class="course-thumb course-thumb-empty d-flex align-items-center justify-content-center text-white fw-bold" aria-hidden="true">L</div>
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <div class="course-meta mb-2">
+                            {% if course.category %}<span>{{ course.category.name }}</span>{% endif %}
+                            <span>By {{ course.teacher.get_full_name|default:course.teacher.username }}</span>
+                        </div>
+                        <h3 class="card-title">{{ course.title }}</h3>
+                        <p class="card-text text-muted">{{ course.description|truncatechars:110 }}</p>
+                        <div class="mt-auto d-flex justify-content-between align-items-center gap-2">
+                            {% if course.course_type == "FREE" %}
+                            <span class="badge bg-success">Free</span>
+                            {% else %}
+                            <span class="course-price">₹{{ course.price|floatformat:2 }}</span>
+                            {% endif %}
+                            <a href="{% url 'courses:course_detail' course.slug %}" class="btn btn-sm btn-outline-primary">View course</a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="card home-empty-state p-4 text-center">
+                    <h3>No courses are published yet</h3>
+                    <p class="text-muted mb-3">Approved courses will appear here as soon as teachers publish them.</p>
+                    {% if not user.is_authenticated %}
+                    <a href="{% url 'accounts:signup_choice' %}" class="btn btn-primary align-self-center">Join LearnHub</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="home-cta" aria-labelledby="home-cta-title">
+        <div>
+            <span class="home-cta-kicker">Your next chapter starts here</span>
+            <h2 id="home-cta-title">Ready to learn something new?</h2>
+            <p>Find a course, meet great teachers, and keep moving forward.</p>
+        </div>
+        <div class="home-cta-actions">
+            <a href="{% url 'courses:course_list' %}" class="btn btn-light">Explore courses <span aria-hidden="true">→</span></a>
+            {% if not user.is_authenticated %}
+            <a href="{% url 'accounts:signup_choice' %}" class="home-cta-secondary">Create your account</a>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Pay - {{ course.title }}{% endblock %}
+{% block content %}
+<div class="text-center mt-5">
+    <p id="payment-status" role="status">Opening secure payment...</p>
+    <a href="{% url 'payments:checkout' course.slug %}" class="btn btn-outline-primary">Return to checkout</a>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+const statusElement = document.getElementById('payment-status');
+const options = {
+    "key": "{{ razorpay_key_id|escapejs }}",
+    "amount": {{ amount_paise }},
+    "currency": "INR",
+    "name": "LearnHub",
+    "description": "{{ course.title|escapejs }}",
+    "order_id": "{{ order.razorpay_order_id|escapejs }}",
+    "handler": function (response) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{% url 'payments:payment_success' %}";
+
+        function addField(name, value) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
+        }
+        addField('csrfmiddlewaretoken', '{{ csrf_token|escapejs }}');
+        addField('razorpay_order_id', response.razorpay_order_id);
+        addField('razorpay_payment_id', response.razorpay_payment_id);
+        addField('razorpay_signature', response.razorpay_signature);
+
+        document.body.appendChild(form);
+        form.submit();
+    },
+    "prefill": {
+        "name": "{{ student_name|escapejs }}",
+        "email": "{{ student_email|escapejs }}"
+    },
+    "theme": { "color": "#0d6efd" }
+};
+if (window.Razorpay) {
+    const razorpay = new Razorpay(options);
+    razorpay.on('payment.failed', function () {
+        statusElement.textContent = 'Payment could not be completed. Please return to checkout and try again.';
+    });
+    razorpay.open();
+} else {
+    statusElement.textContent = 'Secure payment could not be loaded. Please return to checkout and try again.';
+}
+</script>
+{% endblock %}

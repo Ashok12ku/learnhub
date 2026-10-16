@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Checkout - {{ course.title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h4 class="mb-3">Checkout</h4>
+            <h5>{{ course.title }}</h5>
+            <p class="text-muted">by {{ course.teacher.username }}</p>
+
+            <table class="table">
+                <tr><td>Course Price</td><td class="text-end">₹{{ course.price|floatformat:2 }}</td></tr>
+                {% if applied_coupon %}
+                <tr class="text-success">
+                    <td>Coupon ({{ applied_coupon.code }})</td>
+                    <td class="text-end">-{{ applied_coupon.discount_percent }}%</td>
+                </tr>
+                {% endif %}
+                <tr class="fw-bold border-top"><td>Total Payable</td><td class="text-end">₹{{ final_price|floatformat:2 }}</td></tr>
+            </table>
+
+            <form method="post" class="d-flex gap-2 mb-3">
+                {% csrf_token %}
+                <input type="text" name="coupon_code" value="{{ coupon_code }}" class="form-control" placeholder="Have a coupon code?" autocomplete="off">
+                <button type="submit" name="apply_coupon" class="btn btn-outline-secondary">Apply</button>
+            </form>
+            {% if coupon_message %}
+            <div class="alert {% if applied_coupon %}alert-success{% else %}alert-warning{% endif %} py-2">{{ coupon_message }}</div>
+            {% endif %}
+
+            <form method="post" action="{% url 'payments:create_razorpay_order' course.slug %}">
+                {% csrf_token %}
+                <input type="hidden" name="coupon_code" value="{{ applied_coupon.code|default:'' }}">
+                <button type="submit" class="btn btn-primary w-100">Pay ₹{{ final_price|floatformat:2 }} with Razorpay</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Manage Content - {{ course.title }}{% endblock %}
+{% block content %}
+<h3>{{ course.title }} — Content Builder</h3>
+<p class="text-muted">Add sections, then add video/PDF lessons inside each section.</p>
+
+<div class="card p-3 mb-4">
+    <h6>Add New Section</h6>
+    <form method="post" class="row g-2 align-items-end">
+        {% csrf_token %}
+        <div class="col-md-8">{{ section_form.title }}</div>
+        <div class="col-md-2">{{ section_form.order }}</div>
+        <div class="col-md-2">
+            <button type="submit" name="add_section" class="btn btn-primary w-100">+ Add Section</button>
+        </div>
+    </form>
+</div>
+
+{% for section in sections %}
+<div class="card p-3 mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">{{ forloop.counter }}. {{ section.title }}</h6>
+        <div>
+            <a href="{% url 'courses:add_lesson' course.slug section.id %}" class="btn btn-sm btn-outline-primary">+ Add Lesson</a>
+            <form method="post" action="{% url 'courses:delete_section' course.slug section.id %}" class="d-inline" onsubmit="return confirm('Delete this section and all its lessons?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">Delete section</button>
+            </form>
+        </div>
+    </div>
+    <ul class="list-group list-group-flush mt-2">
+        {% for lesson in section.lessons.all %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>
+                {% if lesson.lesson_type == "VIDEO" %}🎥{% elif lesson.lesson_type == "PDF" %}📄{% else %}📝{% endif %}
+                {{ lesson.title }}
+                {% if lesson.is_preview %}<span class="badge bg-info text-dark ms-1">Preview</span>{% endif %}
+            </span>
+            <form method="post" action="{% url 'courses:delete_lesson' course.slug lesson.id %}" class="d-inline" onsubmit="return confirm('Delete this lesson?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">No lessons yet in this section.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% empty %}
+<p class="text-muted">No sections yet. Add your first section above.</p>
+{% endfor %}
+
+<a href="{% url 'courses:teacher_course_list' %}" class="btn btn-outline-secondary">Done — Back to My Courses</a>
+<a href="{% url 'exams:teacher_test_list' course.slug %}" class="btn btn-outline-primary">Manage Tests</a>
+<a href="{% url 'live_classes:teacher_live_class_list' course.slug %}" class="btn btn-outline-success">Live Classes</a>
+{% endblock %}

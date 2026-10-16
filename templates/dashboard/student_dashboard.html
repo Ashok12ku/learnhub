@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+{% block content %}
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <span class="badge mb-2">Student Portal</span>
+            <h2 class="mb-1">Welcome, {{ user.first_name|default:user.username }} 👋</h2>
+            <p class="mb-0">Keep learning, track progress, and stay motivated every day.</p>
+        </div>
+        <div class="dashboard-pill">📘 Learning in progress</div>
+    </div>
+</div>
+
+<div class="row g-3 mt-2">
+    <div class="col-md-4">
+        <div class="stat-card card p-4 text-center h-100">
+            <div class="stat-icon">📚</div>
+            <h2 class="mb-1">{{ total_courses }}</h2>
+            <p class="text-muted mb-0">My Courses</p>
+        </div>
+    </div>
+</div>
+
+<h5 class="mt-4 mb-3">My Enrolled Courses</h5>
+<div class="row g-3 mt-1">
+    {% for enrollment in enrollments %}
+    <div class="col-md-4">
+        <div class="card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                <div>
+                    <h6 class="fw-bold mb-1">{{ enrollment.course.title }}</h6>
+                    <small class="text-muted">By {{ enrollment.course.teacher.get_full_name|default:enrollment.course.teacher.username }}</small>
+                </div>
+                <span class="badge bg-success">Enrolled</span>
+            </div>
+            <div class="progress mb-2" style="height: 8px; border-radius: 999px;">
+                <div class="progress-bar" role="progressbar" aria-valuenow="{{ enrollment.progress_percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Course progress" style="width: {{ enrollment.progress_percent }}%;"></div>
+            </div>
+            <small class="text-muted">{{ enrollment.progress_percent }}% complete</small>
+            <a href="{% url 'courses:course_detail' enrollment.course.slug %}" class="btn btn-outline-primary btn-sm mt-3">Continue course</a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card p-4 text-center text-muted">
+            You haven't purchased any courses yet. <a href="{% url 'courses:course_list' %}" class="fw-semibold">Browse Courses</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

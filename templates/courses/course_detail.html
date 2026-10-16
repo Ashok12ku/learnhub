@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }}{% endblock %}
+{% block content %}
+<div class="detail-shell row g-4 align-items-start">
+    <div class="col-lg-8">
+        <div class="detail-hero card p-4 p-md-5">
+            <div class="detail-meta-row d-flex flex-wrap gap-2 mb-3">
+                {% if course.category %}<span class="meta-pill">{{ course.category.name }}</span>{% endif %}
+                {% if course.course_type == "FREE" %}<span class="meta-pill free">Free Course</span>{% else %}<span class="meta-pill paid">Paid Course</span>{% endif %}
+                <span class="meta-pill">By {{ course.teacher.username }}</span>
+            </div>
+
+            <h2 class="mb-3">{{ course.title }}</h2>
+            <p class="detail-description">{{ course.description }}</p>
+
+            <div class="stats-grid row g-3 mt-2">
+                <div class="col-md-4">
+                    <div class="mini-stat">
+                        <div class="mini-icon">🎯</div>
+                        <div>
+                            <strong>{{ sections|length }}</strong>
+                            <small>Modules</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mini-stat">
+                        <div class="mini-icon">📦</div>
+                        <div>
+                            <strong>{{ total_lessons }}</strong>
+                            <small>Lessons</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mini-stat">
+                        <div class="mini-icon">📖</div>
+                        <div>
+                            <strong>{{ course.created_at|date:"Y" }}</strong>
+                            <small>Published</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="course-content card mt-4 p-4">
+            <h4 class="mb-3">Course Content</h4>
+            <div class="accordion" id="courseContent">
+                {% for section in sections %}
+                <div class="accordion-item border-0 mb-2">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sec{{ section.id }}">
+                            {{ section.title }}
+                        </button>
+                    </h2>
+                    <div id="sec{{ section.id }}" class="accordion-collapse collapse" data-bs-parent="#courseContent">
+                        <div class="accordion-body">
+                            <ul class="list-group list-group-flush">
+                            {% for lesson in section.lessons.all %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <span>
+                                        {% if lesson.id in completed_lesson_ids %}✅{% elif lesson.lesson_type == "VIDEO" %}🎥{% elif lesson.lesson_type == "PDF" %}📄{% else %}📝{% endif %}
+                                        {{ lesson.title }}
+                                        {% if lesson.is_preview %}<span class="badge bg-info text-dark ms-1">Preview</span>{% endif %}
+                                    </span>
+                                    {% if is_enrolled or lesson.is_preview or course.course_type == "FREE" %}
+                                    <a href="{% url 'courses:lesson_view' course.slug lesson.id %}" class="btn btn-sm btn-outline-primary">Open</a>
+                                    {% else %}
+                                    <span class="text-muted">🔒</span>
+                                    {% endif %}
+                                </li>
+                            {% empty %}
+                                <li class="list-group-item px-0 text-muted">No lessons yet.</li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted mb-0">Content coming soon.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="purchase-card card p-4">
+            {% if course.thumbnail %}
+            <img src="{{ course.thumbnail.url }}" class="img-fluid rounded-4 mb-3" style="height: 220px; object-fit: cover; width: 100%;">
+            {% else %}
+            <div class="course-thumb course-thumb-empty d-flex align-items-center justify-content-center text-white fw-bold rounded-4 mb-3">📘</div>
+            {% endif %}
+
+            <div class="price-row mb-3">
+                {% if course.course_type == "FREE" %}
+                    <h3 class="text-success mb-0">Free</h3>
+                {% else %}
+                    <h3 class="mb-0">₹{{ course.price }}</h3>
+                {% endif %}
+                <span class="small text-muted">Lifetime access</span>
+            </div>
+
+            {% if is_enrolled %}
+                <div class="mb-3">
+                    <div class="progress" style="height: 8px; border-radius: 999px;">
+                        <div class="progress-bar" style="width: {{ enrollment.progress_percent }}%; background: linear-gradient(90deg, #2563eb, #14b8a6);"></div>
+                    </div>
+                    <small class="text-muted d-block mt-2">{{ enrollment.progress_percent }}% complete</small>
+                </div>
+                <button class="btn btn-success w-100" disabled>✓ Enrolled</button>
+                <a href="{% url 'exams:student_test_list' course.slug %}" class="btn btn-outline-primary w-100 mt-2">Take Tests</a>
+                <a href="{% url 'live_classes:student_live_class_list' course.slug %}" class="btn btn-outline-success w-100 mt-2">Live Classes</a>
+            {% elif user.is_authenticated and user.is_student %}
+                {% if course.course_type == "FREE" %}
+                <form method="post" action="{% url 'courses:enroll_free' course.slug %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary w-100">Enroll for Free</button>
+                </form>
+                {% else %}
+                <a href="{% url 'payments:checkout' course.slug %}" class="btn btn-primary w-100">Buy Now — ₹{{ course.price }}</a>
+                {% endif %}
+            {% elif user.is_authenticated and user.is_teacher and course.teacher_id == user.id %}
+                <a href="{% url 'courses:course_builder' course.slug %}" class="btn btn-outline-primary w-100">Manage course</a>
+            {% elif user.is_authenticated %}
+                <div class="alert alert-info mb-0">Enrollment is available for student accounts.</div>
+            {% elif not user.is_authenticated %}
+                <a href="{% url 'accounts:login' %}" class="btn btn-primary w-100">Login to Enroll</a>
+            {% endif %}
+
+            <ul class="feature-list mt-4 mb-0">
+                <li>✅ Learn at your own pace</li>
+                <li>✅ Certificate on completion</li>
+                <li>✅ Live learning support</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

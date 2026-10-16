@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ test.title }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 sticky-top bg-light p-2 rounded">
+    <h4 class="mb-0">{{ test.title }}</h4>
+    {% if questions %}<div class="fs-4 fw-bold" id="timer" role="timer" aria-live="polite">--:--</div>{% endif %}
+</div>
+
+{% if questions %}
+<form method="post" action="{% url 'exams:submit_test' course.slug test.id %}" id="testForm">
+    {% csrf_token %}
+    {% for question in questions %}
+    <div class="card p-3 mb-3">
+        <p class="fw-bold">Q{{ forloop.counter }}. {{ question.question_text }}</p>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="A" id="q{{ question.id }}a">
+            <label class="form-check-label" for="q{{ question.id }}a">A. {{ question.option_a }}</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="B" id="q{{ question.id }}b">
+            <label class="form-check-label" for="q{{ question.id }}b">B. {{ question.option_b }}</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="C" id="q{{ question.id }}c">
+            <label class="form-check-label" for="q{{ question.id }}c">C. {{ question.option_c }}</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="D" id="q{{ question.id }}d">
+            <label class="form-check-label" for="q{{ question.id }}d">D. {{ question.option_d }}</label>
+        </div>
+    </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">Submit Test</button>
+</form>
+
+<script>
+let secondsLeft = Number("{{ duration_seconds }}");
+const timerEl = document.getElementById('timer');
+const form = document.getElementById('testForm');
+let autoSubmitted = false;
+
+function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+}
+
+function tick() {
+    timerEl.textContent = formatTime(secondsLeft);
+    if (secondsLeft <= 60) {
+        timerEl.classList.add('text-danger');
+    }
+    if (secondsLeft <= 0 && !autoSubmitted) {
+        autoSubmitted = true;
+        timerEl.textContent = "00:00";
+        form.submit();
+        return;
+    }
+    secondsLeft--;
+}
+
+tick();
+const interval = setInterval(() => {
+    tick();
+    if (autoSubmitted) clearInterval(interval);
+}, 1000);
+
+form.addEventListener('submit', function() {
+    clearInterval(interval);
+});
+</script>
+{% else %}
+<div class="alert alert-info">This test has no questions yet. Please contact your teacher before starting.</div>
+<a href="{% url 'exams:student_test_list' course.slug %}" class="btn btn-outline-secondary">Back to tests</a>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,13 @@
+Django==6.1
+Pillow
+razorpay
+reportlab
+
+# Production deployment
+python-decouple
+dj-database-url
+psycopg2-binary
+whitenoise
+gunicorn
+django-cloudinary-storage
+cloudinary

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Live Classes - {{ course.title }}{% endblock %}
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="h2 mb-2">Live Classes — {{ course.title }}</h1>
+    <p class="mb-0">Upcoming sessions and recordings for this course.</p>
+</div>
+
+<h2 class="h4 mt-4 mb-3">Upcoming / Live</h2>
+<div class="row g-3">
+    {% for live_class in upcoming %}
+    <div class="col-lg-6">
+        <article class="card h-100 p-4">
+            <div class="d-flex justify-content-between align-items-start gap-3">
+                <h3 class="h5">{{ live_class.title }}</h3>
+                {% if live_class.status_label == "LIVE" %}
+                <span class="badge bg-danger">Live now</span>
+                {% else %}
+                <span class="badge bg-primary">Upcoming</span>
+                {% endif %}
+            </div>
+            <p class="text-muted mb-1">{{ live_class.get_platform_display }} · {{ live_class.scheduled_at|date:"d M Y, h:i A" }} · {{ live_class.duration_minutes }} min</p>
+            {% if live_class.notes %}<p>{{ live_class.notes }}</p>{% endif %}
+            <a href="{{ live_class.meeting_link }}" target="_blank" rel="noopener noreferrer" class="btn {% if live_class.status_label == 'LIVE' %}btn-danger{% else %}btn-outline-primary{% endif %} mt-auto">
+                {% if live_class.status_label == "LIVE" %}Join live class{% else %}Open meeting{% endif %}
+            </a>
+        </article>
+    </div>
+    {% empty %}
+    <div class="col-12"><div class="card p-4 text-muted">No upcoming live classes scheduled.</div></div>
+    {% endfor %}
+</div>
+
+<h2 class="h4 mt-5 mb-3">Past Classes</h2>
+<div class="row g-3">
+    {% for live_class in past %}
+    <div class="col-lg-6">
+        <article class="card p-4 h-100">
+            <h3 class="h5">{{ live_class.title }}</h3>
+            <p class="text-muted mb-0">{{ live_class.scheduled_at|date:"d M Y, h:i A" }} · {{ live_class.duration_minutes }} min · Ended</p>
+        </article>
+    </div>
+    {% empty %}
+    <div class="col-12"><div class="card p-4 text-muted">No past classes yet.</div></div>
+    {% endfor %}
+</div>
+{% endblock %}

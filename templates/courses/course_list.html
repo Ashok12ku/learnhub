@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}All Courses{% endblock %}
+{% block content %}
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <span class="badge mb-2">Course Library</span>
+            <h2 class="mb-1">Browse Courses</h2>
+            <p class="mb-0">Find the right learning path for your goals.</p>
+        </div>
+        <div class="dashboard-pill">📚 Explore lessons</div>
+    </div>
+</div>
+
+<form method="get" class="course-search-bar row g-2 mb-4 align-items-center">
+    <div class="col-md-5">
+        <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search courses...">
+    </div>
+    <div class="col-md-3">
+        <select name="category" class="form-select">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+            <option value="{{ cat.slug }}" {% if cat.slug == selected_category %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="type" class="form-select">
+            <option value="">Free & Paid</option>
+            <option value="FREE" {% if selected_type == "FREE" %}selected{% endif %}>Free</option>
+            <option value="PAID" {% if selected_type == "PAID" %}selected{% endif %}>Paid</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary w-100" type="submit">Filter</button>
+    </div>
+</form>
+
+<div class="row g-4">
+    {% for course in courses %}
+    <div class="col-lg-4 col-md-6">
+        <div class="course-card card h-100 overflow-hidden">
+            {% if course.thumbnail %}
+            <img src="{{ course.thumbnail.url }}" class="course-thumb" alt="{{ course.title }}">
+            {% else %}
+            <div class="course-thumb course-thumb-empty d-flex align-items-center justify-content-center text-white fw-bold">📘</div>
+            {% endif %}
+            <div class="card-body d-flex flex-column">
+                <div class="course-meta mb-2">
+                    {% if course.category %}<span>{{ course.category.name }}</span>{% endif %}
+                    <span>By {{ course.teacher.username }}</span>
+                </div>
+                <h5 class="card-title mb-2">{{ course.title }}</h5>
+                <p class="card-text text-muted mb-3">{{ course.description|truncatechars:110 }}</p>
+                <div class="mt-auto d-flex justify-content-between align-items-center gap-2">
+                    {% if course.course_type == "FREE" %}
+                        <span class="badge bg-success">Free</span>
+                    {% else %}
+                        <span class="course-price">₹{{ course.price }}</span>
+                    {% endif %}
+                    <a href="{% url 'courses:course_detail' course.slug %}" class="btn btn-sm btn-outline-primary">View</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card p-4 text-center text-muted">No courses found.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

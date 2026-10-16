@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Live Classes - {{ course.title }}{% endblock %}
+{% block content %}
+<div class="page-header mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h1 class="h2 mb-2">Live Classes — {{ course.title }}</h1>
+        <p class="mb-0">Schedule and manage sessions for your students.</p>
+    </div>
+    <a href="{% url 'live_classes:schedule_live_class' course.slug %}" class="btn btn-light">Schedule live class</a>
+</div>
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Title</th><th>Platform</th><th>Date &amp; Time</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for live_class in classes %}
+                <tr>
+                    <td>{{ live_class.title }}</td>
+                    <td>{{ live_class.get_platform_display }}</td>
+                    <td>{{ live_class.scheduled_at|date:"d M Y, h:i A" }}</td>
+                    <td>{{ live_class.duration_minutes }} min</td>
+                    <td>
+                        {% if live_class.status_label == "LIVE" %}<span class="badge bg-danger">Live</span>
+                        {% elif live_class.status_label == "UPCOMING" %}<span class="badge bg-primary">Upcoming</span>
+                        {% else %}<span class="badge bg-secondary">Ended</span>{% endif %}
+                    </td>
+                    <td class="text-nowrap">
+                        <a href="{% url 'live_classes:edit_live_class' course.slug live_class.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form method="post" action="{% url 'live_classes:delete_live_class' course.slug live_class.id %}" class="d-inline" onsubmit="return confirm('Delete this live class?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-4">No live classes scheduled yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

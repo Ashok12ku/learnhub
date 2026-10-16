@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}My Certificates{% endblock %}
+{% block content %}
+<h3>My Certificates 🏆</h3>
+<div class="row g-3 mt-1">
+{% for cert in certificates %}
+    <div class="col-md-4">
+        <div class="card p-3 text-center">
+            <h6>{{ cert.course.title }}</h6>
+            <p class="text-muted small mb-1">Issued: {{ cert.issued_at|date:"d M Y" }}</p>
+            <p class="text-muted small">Code: {{ cert.verification_code }}</p>
+            {% if cert.pdf_file %}
+            <a href="{% url 'certificates:download_certificate' cert.certificate_id %}" class="btn btn-primary btn-sm">Download PDF</a>
+            {% else %}
+            <span class="text-muted small">Generating...</span>
+            {% endif %}
+        </div>
+    </div>
+{% empty %}
+    <p class="text-muted">No certificates yet. Complete a course 100% to earn one!</p>
+{% endfor %}
+</div>
+{% endblock %}

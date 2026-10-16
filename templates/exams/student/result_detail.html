@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Result - {{ result.test.title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card p-4 text-center mb-4">
+            <h3>{{ result.test.title }}</h3>
+            <h1 class="{% if result.status == 'PASSED' %}text-success{% else %}text-danger{% endif %}">
+                {{ result.percentage }}%
+            </h1>
+            <h4>
+                {% if result.status == "PASSED" %}
+                    Status: PASSED 🎉
+                {% else %}
+                    Status: FAILED
+                {% endif %}
+            </h4>
+            <div class="row mt-3">
+                <div class="col-4"><strong>{{ result.total_questions }}</strong><br><small class="text-muted">Total</small></div>
+                <div class="col-4 text-success"><strong>{{ result.correct_count }}</strong><br><small class="text-muted">Correct</small></div>
+                <div class="col-4 text-danger"><strong>{{ result.wrong_count }}</strong><br><small class="text-muted">Wrong</small></div>
+            </div>
+        </div>
+
+        <h5>Answer Review</h5>
+        {% for answer in answers %}
+        <div class="card p-3 mb-2 {% if answer.is_correct %}border-success{% else %}border-danger{% endif %}">
+            <p class="fw-bold mb-1">{{ answer.question.question_text }}</p>
+            <p class="mb-0">
+                Your answer: {{ answer.selected_option|default:"Not answered" }}
+                {% if not answer.is_correct %} — Correct answer: {{ answer.question.correct_option }}{% endif %}
+                {% if answer.is_correct %}✅{% else %}❌{% endif %}
+            </p>
+        </div>
+        {% endfor %}
+
+        <a href="{% url 'exams:student_test_list' result.test.course.slug %}" class="btn btn-outline-secondary mt-2">Back to Tests</a>
+    </div>
+</div>
+{% endblock %}

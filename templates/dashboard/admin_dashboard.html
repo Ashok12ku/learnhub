@@ -1,0 +1,174 @@
+```html
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <span class="badge mb-2">Admin Control</span>
+            <h2 class="mb-1">Admin Dashboard 👨‍💼</h2>
+            <p class="mb-0">Monitor platform performance, approvals, and growth at a glance.</p>
+        </div>
+        <div class="dashboard-pill">📊 Platform overview</div>
+    </div>
+</div>
+
+<div class="row g-3 mt-2">
+    <div class="col-md-3">
+        <div class="stat-card card p-4 text-center h-100">
+            <div class="stat-icon">👨‍🎓</div>
+            <h2 class="mb-1">{{ total_students }}</h2>
+            <p class="text-muted mb-0">Students</p>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card card p-4 text-center h-100">
+            <div class="stat-icon">👩‍🏫</div>
+            <h2 class="mb-1">{{ total_teachers }}</h2>
+            <p class="text-muted mb-0">Teachers</p>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card card p-4 text-center h-100">
+            <div class="stat-icon">📚</div>
+            <h2 class="mb-1">{{ total_courses }}</h2>
+            <p class="text-muted mb-0">Courses</p>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card card p-4 text-center h-100">
+            <div class="stat-icon">💵</div>
+            <h2 class="mb-1">₹{{ total_revenue }}</h2>
+            <p class="text-muted mb-0">Revenue</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-md-6">
+        <div class="card p-4 text-center h-100 approval-card">
+            <h4 class="mb-1">{{ pending_teachers }}</h4>
+            <p class="text-muted mb-0">Teachers awaiting approval</p>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card p-4 text-center h-100 approval-card">
+            <h4 class="mb-1">{{ pending_courses }}</h4>
+            <p class="text-muted mb-0">Courses awaiting approval</p>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4 approval-panel">
+    <div class="card-header bg-white border-0 py-3">
+        <h4 class="mb-0">👨‍🏫 Teacher Approval</h4>
+    </div>
+    <div class="card-body">
+        {% if pending_teacher_list %}
+        <div class="table-responsive">
+            <table class="premium-table table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Joined</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for teacher in pending_teacher_list %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ teacher.username }}</strong></td>
+                        <td>{{ teacher.email|default:"No email" }}</td>
+                        <td>{{ teacher.created_at|date:"d M Y" }}</td>
+                        <td><span class="status-badge warning">Pending</span></td>
+                        <td>
+                            <form method="POST" action="{% url 'dashboard:approve_teacher' teacher.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Approve this teacher?');">✓ Approve</button>
+                            </form>
+                            <form method="POST" action="{% url 'dashboard:reject_teacher' teacher.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Reject this teacher?');">✕ Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="alert alert-success mb-0">✓ No teachers are waiting for approval.</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mt-4 approval-panel">
+    <div class="card-header bg-white border-0 py-3">
+        <h4 class="mb-0">📚 Course Approval</h4>
+    </div>
+    <div class="card-body">
+        {% if pending_course_list %}
+        <div class="table-responsive">
+            <table class="premium-table table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Course</th>
+                        <th>Teacher</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Price</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for course in pending_course_list %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ course.title }}</strong></td>
+                        <td>{{ course.teacher.username }}</td>
+                        <td>{{ course.category|default:"No category" }}</td>
+                        <td>
+                            {% if course.course_type == "FREE" %}
+                                <span class="status-badge success">Free</span>
+                            {% else %}
+                                <span class="status-badge primary">Paid</span>
+                            {% endif %}
+                        </td>
+                        <td>₹{{ course.price }}</td>
+                        <td>{{ course.created_at|date:"d M Y" }}</td>
+                        <td><span class="status-badge warning">Pending</span></td>
+                        <td>
+                            <form method="POST" action="{% url 'dashboard:approve_course' course.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Approve this course?');">✓ Approve</button>
+                            </form>
+                            <form method="POST" action="{% url 'dashboard:reject_course' course.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Reject this course?');">✕ Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="alert alert-success mb-0">✓ No courses are waiting for approval.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+```

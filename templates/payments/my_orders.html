@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}My Orders{% endblock %}
+{% block content %}
+<h3 class="mb-3">My Orders</h3>
+<table class="table bg-white">
+    <thead><tr><th>Course</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+    <tbody>
+    {% for order in orders %}
+        <tr>
+            <td>{{ order.course.title }}</td>
+            <td>₹{{ order.final_price }}</td>
+            <td>
+                {% if order.status == "PAID" %}<span class="badge bg-success">Paid</span>
+                {% elif order.status == "FAILED" %}<span class="badge bg-danger">Failed</span>
+                {% else %}<span class="badge bg-secondary">Created</span>{% endif %}
+            </td>
+            <td>{{ order.created_at|date:"d M Y, h:i A" }}</td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="4" class="text-muted">No orders yet.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
